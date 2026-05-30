@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Studio Awakening — Compta</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0c0c0e;
+      --surface: #141416;
+      --surface2: #1c1c20;
+      --border: rgba(255,255,255,0.06);
+      --border-active: rgba(255,255,255,0.15);
+      --accent: #e8ff47;
+      --accent2: #ff6b35;
+      --text: #f0f0f0;
+      --muted: #666;
+      --muted2: #444;
+      --success: #4ade80;
+      --error: #f87171;
+      --warning: #fbbf24;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Mono', monospace;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Grain overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 999;
+      opacity: 0.4;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 40px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: rgba(12,12,14,0.92);
+      backdrop-filter: blur(16px);
+      z-index: 100;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-mark {
+      width: 36px;
+      height: 36px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-mark svg { width: 18px; height: 18px; }
+
+    .logo-text {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 15px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .logo-sub {
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-top: 1px;
+    }
+
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* Main */
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 48px 40px;
+    }
+
+    /* API Key section */
+    .api-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 32px;
+    }
+
+    .api-label {
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .api-input-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .api-input {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .api-input:focus { border-color: var(--border-active); }
+    .api-input::placeholder { color: var(--muted2); }
+
+    .btn-save {
+      background: var(--accent);
+      color: #0c0c0e;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 20px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .btn-save:hover { opacity: 0.88; }
+    .btn-save:active { transform: scale(0.97); }
+
+    /* Month selector */
+    .month-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .month-label {
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .month-pills {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .month-pill {
+      padding: 6px 14px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      background: transparent;
+    }
+
+    .month-pill:hover { border-color: var(--border-active); color: var(--text); }
+
+    .month-pill.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0c0c0e;
+      font-weight: 500;
+    }
+
+    /* Upload zones */
+    .zones-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .zone {
+      border: 1px dashed var(--border);
+      border-radius: 16px;
+      padding: 28px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .zone::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.2s;
+      border-radius: 15px;
+    }
+
+    .zone-tickets::before { background: radial-gradient(ellipse at center, rgba(232,255,71,0.06), transparent 70%); }
+    .zone-prestataires::before { background: radial-gradient(ellipse at center, rgba(255,107,53,0.06), transparent 70%); }
+    .zone-clients::before { background: radial-gradient(ellipse at center, rgba(74,222,128,0.06), transparent 70%); }
+    .zone-nf::before { background: radial-gradient(ellipse at center, rgba(251,191,36,0.06), transparent 70%); }
+
+    .zone:hover, .zone.drag-over {
+      border-color: var(--border-active);
+    }
+    .zone:hover::before, .zone.drag-over::before { opacity: 1; }
+
+    .zone-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 14px;
+      font-size: 20px;
+    }
+
+    .zone-tickets .zone-icon { background: rgba(232,255,71,0.1); }
+    .zone-prestataires .zone-icon { background: rgba(255,107,53,0.1); }
+    .zone-clients .zone-icon { background: rgba(74,222,128,0.1); }
+    .zone-nf .zone-icon { background: rgba(251,191,36,0.1); }
+
+    .zone-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .zone-tickets .zone-title { color: var(--accent); }
+    .zone-prestataires .zone-title { color: var(--accent2); }
+    .zone-clients .zone-title { color: var(--success); }
+    .zone-nf .zone-title { color: var(--warning); }
+
+    .zone-hint {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .zone-counter {
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 10px;
+      padding: 3px 10px;
+      border-radius: 100px;
+      background: var(--surface2);
+      color: var(--muted);
+    }
+
+    input[type="file"] { display: none; }
+
+    /* Log */
+    .log-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .log-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .log-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .btn-clear {
+      font-size: 10px;
+      font-family: 'DM Mono', monospace;
+      color: var(--muted2);
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: color 0.15s;
+    }
+    .btn-clear:hover { color: var(--muted); }
+
+    .log-body {
+      padding: 16px 20px;
+      min-height: 160px;
+      max-height: 400px;
+      overflow-y: auto;
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    .log-empty {
+      color: var(--muted2);
+      font-style: italic;
+      text-align: center;
+      padding: 40px 0;
+    }
+
+    .log-entry {
+      display: flex;
+      gap: 12px;
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .log-time { color: var(--muted2); white-space: nowrap; font-size: 10px; padding-top: 2px; }
+    .log-msg { flex: 1; }
+    .log-msg.success { color: var(--success); }
+    .log-msg.error { color: var(--error); }
+    .log-msg.info { color: var(--text); }
+    .log-msg.pending { color: var(--warning); }
+    .log-msg.ai { color: #a78bfa; }
+
+    /* Progress bar */
+    .progress-bar {
+      height: 2px;
+      background: var(--border);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* Thinking indicator */
+    .thinking {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+      color: #a78bfa;
+    }
+
+    .thinking.visible { display: flex; }
+
+    .thinking-dots span {
+      display: inline-block;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #a78bfa;
+      margin: 0 1px;
+      animation: blink 1.2s ease-in-out infinite;
+    }
+    .thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes blink {
+      0%, 80%, 100% { opacity: 0.2; }
+      40% { opacity: 1; }
+    }
+
+    /* Result panel */
+    .result-panel {
+      display: none;
+      margin-top: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .result-panel.visible { display: block; animation: fadeIn 0.3s ease; }
+
+    .result-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .result-body {
+      padding: 20px;
+      font-size: 12px;
+      line-height: 1.8;
+      color: var(--text);
+      white-space: pre-wrap;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      header { padding: 16px 20px; }
+      main { padding: 24px 20px; }
+      .zones-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Password Gate -->
+<div id="passwordGate" style="position:fixed;inset:0;background:#0c0c0e;display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:20px;">
+  <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;letter-spacing:0.1em;color:#f0f0f0;">STUDIO AWAKENING</div>
+  <div style="font-family:'DM Mono',monospace;font-size:11px;color:#666;letter-spacing:0.14em;text-transform:uppercase;margin-top:-10px;">Accès sécurisé</div>
+  <input id="pwdInput" type="password" placeholder="Mot de passe" maxlength="10"
+    style="background:#141416;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 20px;font-family:'DM Mono',monospace;font-size:14px;color:#f0f0f0;outline:none;text-align:center;letter-spacing:0.3em;width:220px;"
+    onkeydown="if(event.key==='Enter')checkPwd()">
+  <button onclick="checkPwd()"
+    style="background:#e8ff47;color:#0c0c0e;border:none;border-radius:10px;padding:11px 32px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.08em;cursor:pointer;">
+    Entrer
+  </button>
+  <div id="pwdError" style="font-size:11px;color:#f87171;font-family:'DM Mono',monospace;display:none;">Mot de passe incorrect</div>
+</div>
+
+<script>
+  (function() {
+    if (sessionStorage.getItem('sa_auth') === '1') {
+      document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('passwordGate').style.display = 'none';
+      });
+    }
+  })();
+  function checkPwd() {
+    if (document.getElementById('pwdInput').value === '0137') {
+      sessionStorage.setItem('sa_auth', '1');
+      document.getElementById('passwordGate').style.display = 'none';
+    } else {
+      document.getElementById('pwdError').style.display = 'block';
+      document.getElementById('pwdInput').value = '';
+    }
+  }
+</script>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 18 18" fill="none">
+        <path d="M9 2L15 5.5V12.5L9 16L3 12.5V5.5L9 2Z" fill="#0c0c0e"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-text">Studio Awakening</div>
+      <div class="logo-sub">Compta 2026 — 2027</div>
+    </div>
+  </div>
+  <div class="header-status">
+    <div class="status-dot"></div>
+    <span id="statusText">Prêt</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- API Key -->
+  <div class="api-section">
+    <div class="api-label">Clé API Anthropic</div>
+    <div class="api-input-row">
+      <input class="api-input" type="password" id="apiKey" placeholder="sk-ant-api03-..." autocomplete="off">
+      <button class="btn-save" onclick="saveKey()">Enregistrer</button>
+    </div>
+  </div>
+
+  <!-- Mois -->
+  <div class="month-row">
+    <span class="month-label">Mois</span>
+    <div class="month-pills" id="monthPills"></div>
+  </div>
+
+  <!-- Zones de dépôt -->
+  <div class="zones-grid">
+
+    <div class="zone zone-tickets" id="zone-tickets"
+         onclick="triggerUpload('tickets')"
+         ondragover="handleDragOver(event, 'tickets')"
+         ondragleave="handleDragLeave('tickets')"
+         ondrop="handleDrop(event, 'tickets')">
+      <div class="zone-icon">🏧</div>
+      <div class="zone-title">Tickets CB</div>
+      <div class="zone-hint">Glisse tes tickets carte bleue<br>ou clique pour sélectionner</div>
+      <div class="zone-counter" id="count-tickets">0 fichier</div>
+    </div>
+
+    <div class="zone zone-prestataires" id="zone-prestataires"
+         onclick="triggerUpload('prestataires')"
+         ondragover="handleDragOver(event, 'prestataires')"
+         ondragleave="handleDragLeave('prestataires')"
+         ondrop="handleDrop(event, 'prestataires')">
+      <div class="zone-icon">📄</div>
+      <div class="zone-title">Factures Prestataires</div>
+      <div class="zone-hint">Sous-traitants, location matériel,<br>achats, abonnements…</div>
+      <div class="zone-counter" id="count-prestataires">0 fichier</div>
+    </div>
+
+    <div class="zone zone-clients" id="zone-clients"
+         onclick="triggerUpload('clients')"
+         ondragover="handleDragOver(event, 'clients')"
+         ondragleave="handleDragLeave('clients')"
+         ondrop="handleDrop(event, 'clients')">
+      <div class="zone-icon">💰</div>
+      <div class="zone-title">Factures Clients</div>
+      <div class="zone-hint">Recettes, factures émises<br>par Studio Awakening</div>
+      <div class="zone-counter" id="count-clients">0 fichier</div>
+    </div>
+
+    <div class="zone zone-nf" id="zone-nf"
+         onclick="triggerUpload('nf')"
+         ondragover="handleDragOver(event, 'nf')"
+         ondragleave="handleDragLeave('nf')"
+         ondrop="handleDrop(event, 'nf')">
+      <div class="zone-icon">🧾</div>
+      <div class="zone-title">Notes de Frais</div>
+      <div class="zone-hint">NF Léo, Valentin, Eloi…<br>remboursements équipe</div>
+      <div class="zone-counter" id="count-nf">0 fichier</div>
+    </div>
+
+  </div>
+
+  <input type="file" id="file-tickets" multiple accept=".pdf,image/*" onchange="addFiles('tickets', this.files)">
+  <input type="file" id="file-prestataires" multiple accept=".pdf" onchange="addFiles('prestataires', this.files)">
+  <input type="file" id="file-clients" multiple accept=".pdf" onchange="addFiles('clients', this.files)">
+  <input type="file" id="file-nf" multiple accept=".pdf,image/*" onchange="addFiles('nf', this.files)">
+
+  <!-- Bouton analyser -->
+  <div style="text-align:center; margin-bottom: 24px;">
+    <button class="btn-save" style="padding: 14px 48px; font-size: 14px; letter-spacing: 0.1em;" onclick="analyzeAll()">
+      ▶ Analyser &amp; Ranger
+    </button>
+  </div>
+
+  <!-- Log -->
+  <div class="log-section">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="log-header">
+      <span class="log-title">Journal d'activité</span>
+      <button class="btn-clear" onclick="clearLog()">Effacer</button>
+    </div>
+    <div class="log-body" id="logBody">
+      <div class="log-empty">En attente de documents…</div>
+    </div>
+    <div class="thinking" id="thinkingIndicator">
+      <div class="thinking-dots">
+        <span></span><span></span><span></span>
+      </div>
+      <span id="thinkingText">Claude analyse…</span>
+    </div>
+  </div>
+
+  <!-- Résultat -->
+  <div class="result-panel" id="resultPanel">
+    <div class="result-header">Résultat de l'analyse</div>
+    <div class="result-body" id="resultBody"></div>
+  </div>
+
+</main>
+
+<script>
+  // ── State ──
+  const files = { tickets: [], prestataires: [], clients: [], nf: [] };
+  let apiKey = localStorage.getItem('sa_api_key') || '';
+  if (apiKey) document.getElementById('apiKey').value = apiKey;
+
+  // ── Mois ──
+  const MONTHS = [
+    { label: 'Avr 26', key: '1-AVRIL 04-26' },
+    { label: 'Mai 26', key: '2-MAI 05-26' },
+    { label: 'Juin 26', key: '3-JUIN 06-26' },
+    { label: 'Juil 26', key: '4-JUILLET 07-26' },
+    { label: 'Août 26', key: '5-AOUT 08-26' },
+    { label: 'Sept 26', key: '6-SEPTEMBRE 09-26' },
+    { label: 'Oct 26', key: '7-OCTOBRE 10-26' },
+    { label: 'Nov 26', key: '8-NOVEMBRE 11-26' },
+    { label: 'Déc 26', key: '9-DECEMBRE 12-26' },
+    { label: 'Jan 27', key: '10-JANVIER 01-27' },
+    { label: 'Fév 27', key: '11-FEVRIER 02-27' },
+    { label: 'Mars 27', key: '12-MARS 03-27' },
+  ];
+
+  let selectedMonth = MONTHS[1]; // Mai 26 par défaut
+
+  function buildMonthPills() {
+    const container = document.getElementById('monthPills');
+    MONTHS.forEach((m, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'month-pill' + (m.key === selectedMonth.key ? ' active' : '');
+      btn.textContent = m.label;
+      btn.onclick = () => {
+        selectedMonth = m;
+        document.querySelectorAll('.month-pill').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      };
+      container.appendChild(btn);
+    });
+  }
+
+  buildMonthPills();
+
+  // ── API Key ──
+  function saveKey() {
+    apiKey = document.getElementById('apiKey').value.trim();
+    localStorage.setItem('sa_api_key', apiKey);
+    log('Clé API enregistrée ✓', 'success');
+  }
+
+  // ── Upload ──
+  function triggerUpload(type) {
+    document.getElementById('file-' + type).click();
+  }
+
+  function addFiles(type, fileList) {
+    Array.from(fileList).forEach(f => {
+      if (!files[type].find(x => x.name === f.name)) {
+        files[type].push(f);
+      }
+    });
+    updateCounter(type);
+    log(`${fileList.length} fichier(s) ajouté(s) → ${labelFor(type)}`, 'info');
+  }
+
+  function updateCounter(type) {
+    const count = files[type].length;
+    document.getElementById('count-' + type).textContent = count + ' fichier' + (count > 1 ? 's' : '');
+  }
+
+  function labelFor(type) {
+    return { tickets: 'Tickets CB', prestataires: 'Factures Prestataires', clients: 'Factures Clients', nf: 'Notes de Frais' }[type];
+  }
+
+  // ── Drag & Drop ──
+  function handleDragOver(e, type) {
+    e.preventDefault();
+    document.getElementById('zone-' + type).classList.add('drag-over');
+  }
+
+  function handleDragLeave(type) {
+    document.getElementById('zone-' + type).classList.remove('drag-over');
+  }
+
+  function handleDrop(e, type) {
+    e.preventDefault();
+    handleDragLeave(type);
+    addFiles(type, e.dataTransfer.files);
+  }
+
+  // ── Log ──
+  function log(msg, type = 'info') {
+    const body = document.getElementById('logBody');
+    const empty = body.querySelector('.log-empty');
+    if (empty) empty.remove();
+
+    const now = new Date();
+    const time = now.toTimeString().slice(0, 8);
+
+    const entry = document.createElement('div');
+    entry.className = 'log-entry';
+    entry.innerHTML = `<span class="log-time">${time}</span><span class="log-msg ${type}">${msg}</span>`;
+    body.appendChild(entry);
+    body.scrollTop = body.scrollHeight;
+  }
+
+  function clearLog() {
+    document.getElementById('logBody').innerHTML = '<div class="log-empty">En attente de documents…</div>';
+    document.getElementById('resultPanel').classList.remove('visible');
+  }
+
+  function setThinking(visible, text = 'Claude analyse…') {
+    const el = document.getElementById('thinkingIndicator');
+    el.className = 'thinking' + (visible ? ' visible' : '');
+    document.getElementById('thinkingText').textContent = text;
+    document.getElementById('statusText').textContent = visible ? text : 'Prêt';
+  }
+
+  function setProgress(pct) {
+    document.getElementById('progressFill').style.width = pct + '%';
+  }
+
+  // ── Convert file to base64 ──
+  function toBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ── Main analysis ──
+  async function analyzeAll() {
+    if (!apiKey) {
+      log('⚠ Renseigne ta clé API Anthropic en haut', 'error');
+      return;
+    }
+
+    const total = Object.values(files).flat().length;
+    if (total === 0) {
+      log('⚠ Aucun fichier déposé', 'error');
+      return;
+    }
+
+    log(`Démarrage analyse — ${total} fichier(s) — Mois: ${selectedMonth.label}`, 'pending');
+    setProgress(5);
+
+    const allTypes = ['tickets', 'prestataires', 'clients', 'nf'];
+    let processed = 0;
+
+    for (const type of allTypes) {
+      if (files[type].length === 0) continue;
+
+      log(`Traitement ${labelFor(type)} (${files[type].length} fichier(s))…`, 'pending');
+      setThinking(true, `Analyse ${labelFor(type)}…`);
+
+      try {
+        const content = await buildPrompt(type);
+        const result = await callClaude(content);
+
+        log(`✓ ${labelFor(type)} analysé`, 'success');
+        showResult(result);
+
+        processed += files[type].length;
+        setProgress(Math.round((processed / total) * 100));
+
+      } catch (err) {
+        log(`✗ Erreur ${labelFor(type)}: ${err.message}`, 'error');
+      }
+    }
+
+    setThinking(false);
+    setProgress(100);
+    log('✓ Analyse terminée — vérifie les résultats ci-dessous', 'success');
+
+    setTimeout(() => setProgress(0), 2000);
+  }
+
+  async function buildPrompt(type) {
+    const contentBlocks = [];
+
+    // System context as first user message
+    const systemContext = `Tu es l'assistant comptable de STUDIO AWAKENING (SAS, SIREN 927 848 804, SIRET 927 848 804 00013, TVA FR86927848804, 13 rue Claudius Linossier 69004 Lyon, NAF 5911B).
+
+Mois en cours sélectionné : ${selectedMonth.label} (dossier Drive : ${selectedMonth.key})
+
+Pour chaque document analysé, fournis une réponse structurée avec :
+1. TYPE DE DOCUMENT détecté
+2. DONNÉES EXTRAITES (date, fournisseur/client, montant TTC, HT, TVA, catégorie)
+3. DOSSIER DRIVE cible (ex: ${selectedMonth.key} > CARTE BLEUE ENTREPRISE)
+4. LIGNE EXCEL à renseigner (onglet, catégorie, colonne du mois)
+5. NOTES éventuelles (anomalie, TVA non applicable, etc.)
+
+Pour les tickets CB : extrais chaque ticket individuellement avec TTC, HT (TTC/1.20), TVA (TTC-HT), catégorie (Alimentaire, Déplacement, Matériel, Logiciel, Fournitures, Autre).
+Réponds en français, de façon concise et structurée.`;
+
+    contentBlocks.push({ type: 'text', text: systemContext });
+
+    for (const file of files[type]) {
+      contentBlocks.push({
+        type: 'text',
+        text: `\n--- Document : ${file.name} (type: ${labelFor(type)}) ---`
+      });
+
+      if (file.type === 'application/pdf' || file.type.startsWith('image/')) {
+        const b64 = await toBase64(file);
+        const mediaType = file.type === 'application/pdf' ? 'application/pdf' : file.type;
+
+        if (file.type === 'application/pdf') {
+          contentBlocks.push({
+            type: 'document',
+            source: { type: 'base64', media_type: 'application/pdf', data: b64 }
+          });
+        } else {
+          contentBlocks.push({
+            type: 'image',
+            source: { type: 'base64', media_type: mediaType, data: b64 }
+          });
+        }
+      }
+    }
+
+    contentBlocks.push({
+      type: 'text',
+      text: '\nAnalyse tous les documents ci-dessus et fournis les instructions de classement et de saisie Excel.'
+    });
+
+    return contentBlocks;
+  }
+
+  async function callClaude(contentBlocks) {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 2000,
+        messages: [{ role: 'user', content: contentBlocks }]
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error?.message || `HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.content?.[0]?.text || '(pas de réponse)';
+  }
+
+  function showResult(text) {
+    const panel = document.getElementById('resultPanel');
+    const body = document.getElementById('resultBody');
+    body.textContent = text;
+    panel.classList.add('visible');
+  }
+</script>
+</body>
+</html>
