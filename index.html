@@ -576,12 +576,25 @@
       <div class="zone-counter" id="count-nf">0 fichier</div>
     </div>
 
+    <div class="zone zone-intermittence" id="zone-intermittence"
+         onclick="triggerUpload('intermittence')"
+         ondragover="handleDragOver(event, 'intermittence')"
+         ondragleave="handleDragLeave('intermittence')"
+         ondrop="handleDrop(event, 'intermittence')"
+         style="grid-column: span 2;">
+      <div class="zone-icon" style="background:rgba(167,139,250,0.1)">🎬</div>
+      <div class="zone-title" style="color:#a78bfa">Intermittence</div>
+      <div class="zone-hint">Fiches de paie, attestations AEM, relevés Pôle Emploi,<br>contrats de travail, bulletins de salaire intermittents</div>
+      <div class="zone-counter" id="count-intermittence">0 fichier</div>
+    </div>
+
   </div>
 
   <input type="file" id="file-tickets" multiple accept=".pdf,image/*" onchange="addFiles('tickets', this.files)">
   <input type="file" id="file-prestataires" multiple accept=".pdf" onchange="addFiles('prestataires', this.files)">
   <input type="file" id="file-clients" multiple accept=".pdf" onchange="addFiles('clients', this.files)">
   <input type="file" id="file-nf" multiple accept=".pdf,image/*" onchange="addFiles('nf', this.files)">
+  <input type="file" id="file-intermittence" multiple accept=".pdf,image/*" onchange="addFiles('intermittence', this.files)">
 
   <!-- Bouton analyser -->
   <div style="text-align:center; margin-bottom: 24px;">
@@ -618,7 +631,7 @@
 
 <script>
   // ── State ──
-  const files = { tickets: [], prestataires: [], clients: [], nf: [] };
+  const files = { tickets: [], prestataires: [], clients: [], nf: [], intermittence: [] };
   let apiKey = localStorage.getItem('sa_gemini_key') || '';
   if (apiKey) document.getElementById('apiKey').value = apiKey;
 
@@ -685,7 +698,7 @@
   }
 
   function labelFor(type) {
-    return { tickets: 'Tickets CB', prestataires: 'Factures Prestataires', clients: 'Factures Clients', nf: 'Notes de Frais' }[type];
+    return { tickets: 'Tickets CB', prestataires: 'Factures Prestataires', clients: 'Factures Clients', nf: 'Notes de Frais', intermittence: 'Intermittence' }[type];
   }
 
   // ── Drag & Drop ──
@@ -762,7 +775,7 @@
     log(`Démarrage analyse — ${total} fichier(s) — Mois: ${selectedMonth.label}`, 'pending');
     setProgress(5);
 
-    const allTypes = ['tickets', 'prestataires', 'clients', 'nf'];
+    const allTypes = ['tickets', 'prestataires', 'clients', 'nf', 'intermittence'];
     let processed = 0;
 
     for (const type of allTypes) {
